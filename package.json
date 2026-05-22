@@ -1,0 +1,10 @@
+{
+  "name": "moneymesh-root",
+  "version": "1.0.0",
+  "description": "Root workspace to start MoneyMesh backend and frontend",
+  "scripts": {
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev": "npx concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
+  }
+}
