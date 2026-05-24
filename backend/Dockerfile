@@ -1,13 +1,24 @@
-FROM node:20-alpine
-
+# Stage 1: Build the frontend
+FROM node:20-alpine AS frontend-builder
 WORKDIR /app
+COPY frontend/package*.json ./frontend/
+RUN cd frontend && npm ci
+COPY frontend/ ./frontend/
+RUN cd frontend && npm run build
 
-COPY package*.json ./
-
-RUN npm install
-
-COPY . .
+# Stage 2: Prepare production backend with frontend static files
+FROM node:20-alpine
+WORKDIR /app/backend
+COPY backend/package*.json ./
+RUN npm install --omit=dev
+RUN pwd
+RUN ls -la
+RUN cat package.json
+RUN npm list express || true
+COPY backend/ ./
+COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
 
 EXPOSE 5000
+ENV NODE_ENV=production
+CMD ["npm", "start"]
 
-CMD ["npm", "run", "start"]

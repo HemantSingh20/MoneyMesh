@@ -11,7 +11,9 @@ services:
     restart: unless-stopped
 
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: moneymesh-backend
     command: npm run dev
     ports:
