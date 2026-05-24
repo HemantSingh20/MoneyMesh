@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Route imports
 import authRoutes from './routes/authRoutes.js';
@@ -33,6 +35,20 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/trips', tripRoutes);
 app.use('/api/payments', paymentRoutes);
+
+// Serve static assets in production
+if (process.env.NODE_ENV === 'production') {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  
+  // Serve static files from frontend/dist
+  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+  // For any route that is not an API route, serve index.html
+  app.get(/^\/(?!api).*/, (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../frontend', 'dist', 'index.html'));
+  });
+}
 
 // Error Handling Middlewares
 app.use((req, res, next) => {
