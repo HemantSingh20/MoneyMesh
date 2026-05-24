@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   mongodb:
-    image: mongo:6.0-alpine
+    image: mongo:6.0
     container_name: moneymesh-mongodb
     ports:
       - "27017:27017"
@@ -10,31 +8,45 @@ services:
       - mongodb_data:/data/db
     networks:
       - moneymesh-network
+    restart: unless-stopped
 
   backend:
     build: ./backend
     container_name: moneymesh-backend
+    command: npm run dev
     ports:
       - "5000:5000"
+    env_file:
+      - ./backend/.env
     environment:
       - PORT=5000
       - MONGO_URI=mongodb://mongodb:27017/moneymesh
       - JWT_SECRET=moneymesh_super_secure_jwt_secret_token_key_2026
       - NODE_ENV=development
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
     depends_on:
       - mongodb
     networks:
       - moneymesh-network
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
     container_name: moneymesh-frontend
     ports:
       - "5173:5173"
+    environment:
+      - VITE_BACKEND_URL=http://backend:5000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     depends_on:
       - backend
     networks:
       - moneymesh-network
+    restart: unless-stopped
 
 volumes:
   mongodb_data:
