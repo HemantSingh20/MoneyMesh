@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import User from '../models/User.js';
 import BudgetCategory from '../models/BudgetCategory.js';
 import jwt from 'jsonwebtoken';
@@ -14,6 +15,12 @@ const generateToken = (id) => {
 // @access  Public
 const registerUser = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        message: 'Database is connecting or unreachable. Please verify MongoDB Atlas connection.',
+      });
+    }
+
     const { name, email, password, profileImage } = req.body;
 
     if (!name || !email || !password) {
@@ -79,6 +86,12 @@ const registerUser = async (req, res) => {
 // @access  Public
 const loginUser = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        message: 'Database is connecting or unreachable. Please verify MongoDB Atlas connection.',
+      });
+    }
+
     const { email, password } = req.body;
 
     if (!email || !password) {

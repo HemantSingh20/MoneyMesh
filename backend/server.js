@@ -1,7 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import connectDB from './config/db.js';
+import mongoose from 'mongoose';
+import connectDB, { lastDbError } from './config/db.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -26,7 +27,14 @@ app.use(express.urlencoded({ extended: true }));
 
 // Test route
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'MoneyMesh API is running smoothly.' });
+  const isConnected = mongoose.connection.readyState === 1;
+  res.json({
+    status: isConnected ? 'OK' : 'Degraded',
+    message: isConnected ? 'MoneyMesh API is running smoothly.' : 'MongoDB is connecting or unreachable.',
+    dbReadyState: mongoose.connection.readyState,
+    dbHost: isConnected ? mongoose.connection.host : null,
+    dbError: isConnected ? null : lastDbError,
+  });
 });
 
 // API Routes

@@ -1,8 +1,16 @@
 import mongoose from 'mongoose';
 
+export let lastDbError = null;
+
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/moneymesh');
+    const rawUri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/moneymesh';
+    const uri = rawUri.trim().replace(/^["']|["']$/g, '');
+
+    const conn = await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+    lastDbError = null;
     console.log(`MongoDB Connected: ${conn.connection.host}`);
 
     // Self-heal: Drop stale unique index tripCode_1 if left over from previous schema versions
@@ -18,8 +26,10 @@ const connectDB = async () => {
       // Ignore if database/collection does not exist yet
     }
   } catch (error) {
+    lastDbError = error.message;
     console.error(`Error connecting to MongoDB: ${error.message}`);
-    process.exit(1);
+    // Do not call process.exit(1) on Render/production to prevent crash loops (503 hibernate-wake-error)
+    setTimeout(connectDB, 5000);
   }
 };
 
